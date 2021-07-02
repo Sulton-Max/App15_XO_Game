@@ -24,8 +24,13 @@ namespace App15_XO_Game
         {
             InitializeComponent();
 
-            GameEngine gameEngine = new GameEngine(3, 3, Convert.ToInt32(MainArea.Width), Convert.ToInt32(MainArea.Height));
-            gameEngine.Calculate(MainArea);
+            GameArea gameArea = new GameArea(3,5);
+            GameEngine gameEngine = new GameEngine(gameArea, MainArea);
+            Player player1 = new Player(GameSigns.XSign);
+            Player player2 = new Player(GameSigns.OSign);
+
+            GameLogic game = new GameLogic(gameEngine, player1, player2);
+            game.Run();
         }
     }
 }
