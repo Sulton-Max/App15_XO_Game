@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:App15_XO_Game"
         mc:Ignorable="d"
         ResizeMode="NoResize"
-        Title="MainWindow" Height="510" Width="400">
+        Title="MainWindow" Height="520" Width="400">
     <Window.Resources>
         <Style x:Key="UI_Label" TargetType="Label">
             <Setter Property="Foreground" Value="Gray"/>
@@ -44,16 +44,17 @@
                 <TextBox x:Name="Player1Name"  Style="{StaticResource UI_TextBox}" TextChanged="UsernameChanged"/>
                 <Label Content="Choose a Sign :" Style="{StaticResource UI_Label}"/>
                 <ComboBox x:Name="Player1Sign" Style="{StaticResource UI_Combo}">
-                    <ComboBoxItem Content="X"/>
-                    <ComboBoxItem Content="O"/>
+                    <ComboBoxItem Content="X" Tag="x"/>
+                    <ComboBoxItem Content="O" Tag="o"/>
                 </ComboBox>
 
                 <!-- Player 1 Info -->
                 <Label Content="Player 2 " Style="{StaticResource UI_Label}" FontSize="20" HorizontalAlignment="Center"/>
-                <ComboBox x:Name="Player2" Style="{StaticResource UI_Combo}">
-                    <ComboBoxItem Content="User"/>
-                    <ComboBoxItem Content="PC"/>
-                </ComboBox>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Label Content="Against PC" Style="{StaticResource UI_Label}"/>
+                    <CheckBox Name="IsAgainstPc" VerticalAlignment="Center" Margin="10 2 0 0" IsChecked="false" Checked="IsAgainstPc_Checked"/>
+                </StackPanel>
+
                 <Label Content="Username" Style="{StaticResource UI_Label}"/>
                 <TextBox x:Name="Player2Name" Style="{StaticResource UI_TextBox}" TextChanged="UsernameChanged"/>
 

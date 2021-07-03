@@ -13,7 +13,6 @@ namespace App15_XO_Game
         Draw,
         Player2
     }
-
     public struct PCorr
     {
         public int X { get; private set; }
@@ -38,8 +37,6 @@ namespace App15_XO_Game
             P3 = p3;
         }
     }
-
-
     public class GameLogic
     {
         private GameEngine _gameEngine;
@@ -51,6 +48,7 @@ namespace App15_XO_Game
         private Player _presentPlayer;
         private RoutedEventHandler _showBack;
         private LCorr _lineCorr;
+        private PCorr _previousMove;
 
         public char[,] GameTable { get; private set; }
 
@@ -97,23 +95,29 @@ namespace App15_XO_Game
             Button button = sender as Button;
             if (button.Content == null)
             {
-                // Filling with Image
-                char sign = _presentPlayer.OwnSign;
-                Image image = new Image();
-                image.Source = new BitmapImage(new Uri($"pack://application:,,,/App15_XO_Game;component/Icons/{sign}.png"));
-                image.Height = 25;
-                image.Width = 25;
-                button.Content = image;
-                button.IsEnabled = false;
-
-                // Further processing of the game
                 string[] values = button.Tag.ToString().Split(' ');
                 int xCorr = Convert.ToInt32(values[0]);
                 int yCorr = Convert.ToInt32(values[1]);
 
-                GameTable[yCorr, xCorr] = sign;
+                MakeMove(new PCorr(xCorr, yCorr));
                 GameProcess(xCorr, yCorr);
             }
+        }
+
+        private void MakeMove(PCorr pCorr)
+        {
+            char sign = _presentPlayer.OwnSign;
+            Image image = new Image();
+            image.Source = new BitmapImage(new Uri($"pack://application:,,,/App15_XO_Game;component/Icons/{sign}.png"));
+            image.Height = 25;
+            image.Width = 25;
+
+            _gameEngine.SetImage(pCorr, image);
+            GameTable[pCorr.Y, pCorr.X] = sign;
+
+            _gameEngine.HightlightLastMove(new PCorr(pCorr.X, pCorr.Y));
+            if (_player2.IsPc && !_presentPlayer.IsPc)
+                _previousMove = new PCorr(pCorr.X, pCorr.Y);
         }
 
         private void ChangingTurn()
@@ -123,39 +127,148 @@ namespace App15_XO_Game
                 _presentPlayer = _player1;
             else
                 _presentPlayer = _player2;
-
             _username.Text = _presentPlayer.Username;
+
+            // Give turn to PC if another player is PC
+            if (_presentPlayer.IsPc)
+            {
+                PCorr PCMove = PcPlayerLogic.MakeMove(GameTable, _presentPlayer.OwnSign, _previousMove);
+                MakeMove(PCMove);
+                GameProcess(PCMove.X, PCMove.Y);
+            }
         }
 
         private bool CheckIfWon(int xCorr, int yCorr, ref string winner)
         {
+            // If another player is PC, then write down the previous move
+            if (_player2.IsPc && !_presentPlayer.IsPc)
+                _previousMove = new PCorr(xCorr, yCorr);
+
             // Check in all 8 directions
             int yLen = GameTable.GetLength(0);
             int xLen = GameTable.GetLength(1);
             winner = _presentPlayer.Username;
 
+            // TODO : Make all crossing checks
 
-            // Checking by vertical direction and center
+            // Checking the all verticals crossings
             if ((yCorr - 1) >= 0)
             {
                 if ((yCorr - 2) >= 0)
-                {
                     if (IsRightSign(xCorr, yCorr) && IsRightSign(xCorr, yCorr - 1) && IsRightSign(xCorr, yCorr - 2))
                     {
-                        PCorr p1 = new PCorr(xCorr, yCorr - 2);
-                        PCorr p2 = new PCorr(xCorr, yCorr - 1);
-                        PCorr p3 = new PCorr(xCorr, yCorr);
-                        _lineCorr = new LCorr(p1, p2, p3);
+                        _lineCorr = CreateLine(xCorr, yCorr - 2, xCorr, yCorr - 1, xCorr, yCorr);
+                        return true;
+                    }
+                if ((yCorr + 1) < yLen)
+                    if (IsRightSign(xCorr, yCorr - 1) && IsRightSign(xCorr, yCorr) && IsRightSign(xCorr, yCorr + 1))
+                    {
+                        _lineCorr = CreateLine(xCorr, yCorr - 1, xCorr, yCorr, xCorr, yCorr + 1);
+                        return true;
+                    }
+            }
+            if ((yCorr + 1 < yLen) && (yCorr + 2 < yLen))
+                if (IsRightSign(xCorr, yCorr) && IsRightSign(xCorr, yCorr + 1) && IsRightSign(xCorr, yCorr + 2))
+                {
+                    _lineCorr = CreateLine(xCorr, yCorr, xCorr, yCorr + 1, xCorr, yCorr + 2);
+                    return true;
+                }
+
+            // Checking all the horizontal crossings
+            if (xCorr + 1 < xLen)
+            {
+                if (xCorr + 2 < xLen)
+                    if (IsRightSign(xCorr, yCorr) && IsRightSign(xCorr + 1, yCorr) && IsRightSign(xCorr + 2, yCorr))
+                    {
+                        _lineCorr = CreateLine(xCorr, yCorr, xCorr + 1, yCorr, xCorr + 2, yCorr);
+                        return true;
+                    }
+                if (xCorr - 1 >= 0)
+                    if (IsRightSign(xCorr - 1, yCorr) && IsRightSign(xCorr, yCorr) && IsRightSign(xCorr + 1, yCorr))
+                    {
+                        _lineCorr = CreateLine(xCorr - 1, yCorr, xCorr, yCorr, xCorr + 1, yCorr);
+                        return true;
+                    }
+            }
+            if ((xCorr - 1 >= 0) && (xCorr - 2 >= 0))
+                if (IsRightSign(xCorr, yCorr) && IsRightSign(xCorr - 1, yCorr) && IsRightSign(xCorr - 2, yCorr))
+                {
+                    _lineCorr = CreateLine(xCorr - 2, yCorr, xCorr - 1, yCorr, xCorr, yCorr);
+                    return true;
+                }
+
+
+            // Checking all the left diagonal crossings
+            if ((yCorr - 1 >= 0) && (xCorr + 1 < xLen))
+            {
+                if ((yCorr - 2 >= 0) && (xCorr + 2 < xLen))
+                {
+                    if (IsRightSign(xCorr, yCorr) && IsRightSign(xCorr + 1, yCorr - 1) && IsRightSign(xCorr + 2, yCorr - 2))
+                    {
+                        _lineCorr = CreateLine(xCorr, yCorr, xCorr + 1, yCorr - 1, xCorr + 2, yCorr - 2);
                         return true;
                     }
                 }
-                else if ((yCorr + 1) <= yLen)
-                    if (IsRightSign(xCorr, yCorr - 1) && IsRightSign(xCorr, yCorr) && IsRightSign(xCorr, yCorr + 1))
+                if ((yCorr + 1 < yLen) && (xCorr - 1 >= 0))
+                    if (IsRightSign(xCorr + 1, yCorr - 1) && IsRightSign(xCorr, yCorr) && IsRightSign(xCorr - 1, yCorr + 1))
+                    {
+                        _lineCorr = CreateLine(xCorr - 1, yCorr + 1, xCorr, yCorr, xCorr + 1, yCorr - 1);
                         return true;
+                    }
+            }
+            if ((yCorr + 1 < yLen) && (xCorr - 1 >= 0) && (yCorr + 2 < yLen) && (xCorr - 2 >= 0))
+                if (IsRightSign(xCorr, yCorr) && IsRightSign(xCorr - 1, yCorr + 1) && IsRightSign(xCorr - 2, yCorr + 2))
+                {
+                    _lineCorr = CreateLine(xCorr, yCorr, xCorr - 1, yCorr + 1, xCorr - 2, yCorr + 2);
+                    return true;
+                }
+
+            // Checking right diagonal crossings
+            if ((yCorr + 1 < yLen) && (xCorr + 1 < xLen))
+            {
+                if ((yCorr + 2 < yLen) && (xCorr + 2 < xLen))
+                {
+                    if (IsRightSign(xCorr, yCorr) && IsRightSign(xCorr + 1, yCorr + 1) && IsRightSign(xCorr + 2, yCorr + 2))
+                    {
+                        _lineCorr = CreateLine(xCorr, yCorr, xCorr + 1, yCorr + 1, xCorr + 2, yCorr + 2);
+                        return true;
+                    }
+                }
+                if ((yCorr - 1 >= 0) && (xCorr - 1 >= 0))
+                    if (IsRightSign(xCorr - 1, yCorr - 1) && IsRightSign(xCorr, yCorr) && IsRightSign(xCorr + 1, yCorr + 1))
+                    {
+                        _lineCorr = CreateLine(xCorr - 1, yCorr - 1, xCorr, yCorr, xCorr + 1, yCorr + 1);
+                        return true;
+                    }
+            }
+            if ((yCorr - 2 >= 0) && (xCorr - 2 >= 0) && (yCorr - 1 >= 0) && (xCorr - 1 >= 0))
+                if (IsRightSign(xCorr - 2, yCorr - 2) && IsRightSign(xCorr - 1, yCorr - 1) && IsRightSign(xCorr, yCorr))
+                {
+                    _lineCorr = CreateLine(xCorr - 2, yCorr - 2, xCorr - 1, yCorr - 1, xCorr, yCorr);
+                    return true;
+                }
+
+            // Check if all cells are full
+            bool isTableFull = true;
+            for (int indexY = 0; indexY < _gameEngine.GameArea.YCells; indexY++)
+                for (int indexX = 0; indexX < _gameEngine.GameArea.YCells; indexX++)
+                    if (GameTable[indexY, indexX] == '\0')
+                        isTableFull = false;
+
+            // Table is full so we should finish the game
+            if (isTableFull)
+            {
+                winner = null;
+                return true;
             }
 
             winner = null;
             return false;
+        }
+
+        private LCorr CreateLine(int x1, int y1, int x2, int y2, int x3, int y3)
+        {
+            return new LCorr(new PCorr(x1, y1), new PCorr(x2, y2), new PCorr(x3, y3));
         }
 
         private bool IsRightSign(int xCorr, int yCorr)
@@ -167,11 +280,18 @@ namespace App15_XO_Game
         private void Finish(string winnername = null)
         {
             bool IsDraw = (winnername == null) ? true : false;
-            if(!IsDraw)
+            if (!IsDraw)
+            {
+                _status.Text = "Winner : ";
+                _username.Text = _presentPlayer.Username;
                 _presentPlayer.IncrementScore();
+            }
+            else
+            {
+                _status.Text = string.Empty;
+                _username.Text = "Draw";
+            }
 
-            _status.Text = string.Empty;
-            _username.Text = string.Empty;
             _gameEngine.Finish(IsDraw, _lineCorr, _player1, _player2, ContinueBtnClick);
         }
 

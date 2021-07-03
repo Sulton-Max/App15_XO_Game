@@ -17,15 +17,10 @@ namespace App15_XO_Game.Windows
     /// </summary>
     public partial class MainGame : Window
     {
-        public MainGame(RoutedEventHandler showBack)
+        public MainGame(RoutedEventHandler showBack, Player player1, Player player2, GameArea gameArea)
         {
             InitializeComponent();
-
-            GameArea gameArea = new GameArea(3, 3);
             GameEngine gameEngine = new GameEngine(gameArea, MainArea);
-            Player player1 = new Player("Sultonbek", GameSigns.XSign);
-            Player player2 = new Player("Bobur", GameSigns.OSign);
-
             GameLogic game = new GameLogic(gameEngine, player1, player2, Status, Username, showBack);
             game.Run();
 

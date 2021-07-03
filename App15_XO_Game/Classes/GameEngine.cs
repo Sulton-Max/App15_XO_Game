@@ -12,13 +12,12 @@ namespace App15_XO_Game
         XSign = 'x',
         OSign = 'o'
     }
-
-    public enum LineType 
+    public enum LineType
     {
-        Vertical, 
-        Horizontal, 
-        LeftCrooked,
-        RightCrooked
+        Vertical,
+        Horizontal,
+        LeftDiagonal,
+        RightDiagonal
     }
 
     public class GameEngine
@@ -27,10 +26,12 @@ namespace App15_XO_Game
         private int topOffset;
         private const int MAX_CELL_SIZE = 40;
         private Canvas _mArea;
+        private Button[,] _buttons;
 
         private Player _player1;
         private Player _player2;
         private RoutedEventHandler _conHandler;
+        public PCorr PreviousMove { get; private set; } 
 
         public RoutedEventHandler HandlerBinder { get; set; }
         public GameArea GameArea { get; private set; }
@@ -51,7 +52,7 @@ namespace App15_XO_Game
             // Create Elements
             CreateLines((GameArea.YCells + 1), false);        // horizontal lines
             CreateLines((GameArea.XCells + 1), true);         // vertical lines
-            CreateButtons(GameArea.XCells, GameArea.YCells);    // buttons
+            _buttons = CreateButtons(GameArea.XCells, GameArea.YCells);    // buttons
         }
 
         private int CalcPos(int offset, int index) => (offset + index * MAX_CELL_SIZE);
@@ -104,6 +105,12 @@ namespace App15_XO_Game
                     _mArea.Children.Add(buttons[indexY, indexX]);
                 }
             return buttons;
+        }
+
+        internal void SetImage(PCorr pCorr, Image image)
+        {
+            _buttons[pCorr.Y, pCorr.X].Content = image;
+            _buttons[pCorr.Y, pCorr.X].IsEnabled = false;
         }
 
         private void CellButtonClick(object sender, RoutedEventArgs e)
@@ -169,6 +176,9 @@ namespace App15_XO_Game
 
         internal void Finish(bool isDraw, LCorr lCorr, Player p1, Player p2, RoutedEventHandler conH)
         {
+            // Disable all buttons
+            DisableAllBtns();
+
             // Show how the player won if it is now draw
             if (!isDraw)
                 ShowCrossedSignsLine(lCorr);
@@ -215,30 +225,71 @@ namespace App15_XO_Game
         private void ShowCrossedSignsLine(LCorr lCorr)
         {
             //TODO : Check the type of line
-
-
             // Check the type of the line
-            LineType lineType;
+            LineType lineType = LineType.Horizontal;
             if (lCorr.P1.X == lCorr.P2.X)
                 lineType = LineType.Vertical;
             else if (lCorr.P1.Y == lCorr.P2.Y)
                 lineType = LineType.Horizontal;
+            else if ((lCorr.P1.X < lCorr.P2.X) && (lCorr.P1.Y > lCorr.P2.Y))
+                lineType = LineType.LeftDiagonal;
+            else if ((lCorr.P1.X < lCorr.P2.X) && (lCorr.P1.Y < lCorr.P2.Y))
+                lineType = LineType.RightDiagonal;
 
             // Create the line
             Line line = new Line();
             line.X1 = 120;
-            line.Style = (Style)Application.Current.Resources["Cell_Line"];
+            line.StrokeThickness = 4;
+            line.Stroke = new SolidColorBrush(Colors.Red);
 
-            if(LineType.Vertical)
+            int leftSide = 0;
+            int topSide = 0;
+
+            if(lineType == LineType.Horizontal)
+                topSide = (MAX_CELL_SIZE / 2);
+            else if (lineType == LineType.Vertical)
             {
-
+                RotateTransform rotation = new RotateTransform();
+                rotation.Angle = 90;
+                line.RenderTransform = rotation;
+                leftSide = (MAX_CELL_SIZE / 2);
+            }
+            else if(lineType == LineType.LeftDiagonal)
+            {
+                RotateTransform rotation = new RotateTransform();
+                rotation.Angle = -45;
+                line.RenderTransform = rotation;
+                topSide = MAX_CELL_SIZE / 2;
+                leftSide = MAX_CELL_SIZE / 2;
+            }
+            else if(lineType == LineType.RightDiagonal)
+            {
+                RotateTransform rotation = new RotateTransform();
+                rotation.Angle = 45;
+                line.RenderTransform = rotation;
+                topSide = MAX_CELL_SIZE / 2;
+                leftSide = MAX_CELL_SIZE / 2;
             }
 
-
             // Fixing the position
-            Canvas.SetLeft(line, CalcPos((leftOffset + 1), lCorr.P1.X) + (MAX_CELL_SIZE / 2));
-            Canvas.SetTop(line, CalcPos((topOffset + 1), lCorr.P1.Y) + (MAX_CELL_SIZE / 2));
+
+            Canvas.SetLeft(line, CalcPos((leftOffset + 1), lCorr.P1.X) + leftSide);
+            Canvas.SetTop(line, CalcPos((topOffset + 1), lCorr.P1.Y) + topSide);
             _mArea.Children.Add(line);
+        }
+
+        private void DisableAllBtns()
+        {
+            for (int indexY = 0; indexY < GameArea.YCells; indexY++)
+                for (int indexX = 0; indexX < GameArea.XCells; indexX++)
+                    _buttons[indexY, indexX].IsEnabled = false;
+        }
+
+        public void HightlightLastMove(PCorr currentMove)
+        {
+            _buttons[PreviousMove.Y, PreviousMove.X].BorderThickness = new Thickness(0);
+            _buttons[currentMove.Y, currentMove.X].BorderThickness = new Thickness(3);
+            PreviousMove = new PCorr(currentMove.X, currentMove.Y);
         }
     }
 }
