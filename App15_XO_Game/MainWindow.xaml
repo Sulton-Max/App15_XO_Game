@@ -5,16 +5,93 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:App15_XO_Game"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="400">
-    <StackPanel>
-        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Horizontal" Height="40" Margin="0 10 0 0">
-            <TextBlock x:Name="Status" Text="Now Plays : " Foreground="Gray" FontSize="20" FontWeight="SemiBold"/>
-            <TextBlock x:Name="Username" Foreground="Green" FontSize="20" FontWeight="Bold" Text="Player1"/>
-        </StackPanel>
-        <Border BorderBrush="Gray" BorderThickness="2" Width="370" Height="370" Margin="0 0 0 10">
-            <Canvas x:Name="MainArea" VerticalAlignment="Bottom" HorizontalAlignment="Center" 
-                    Width="370" Height="370" Margin="0 0 0 10">
-            </Canvas>
+        ResizeMode="NoResize"
+        Title="MainWindow" Height="510" Width="400">
+    <Window.Resources>
+        <Style x:Key="UI_Label" TargetType="Label">
+            <Setter Property="Foreground" Value="Gray"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="Margin" Value="0 2 0 0"/>
+        </Style>
+        <Style x:Key="UI_TextBox" TargetType="TextBox">
+            <Setter Property="Foreground" Value="Gray"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Margin" Value="0 0 0 2"/>
+            <Setter Property="Padding" Value="3"/>
+        </Style>
+        <Style x:Key="UI_Button" TargetType="Button">
+            <Setter Property="Background" Value="Green"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="20"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Margin" Value="0 30 0 0"/>
+        </Style>
+        <Style x:Key="UI_Combo" TargetType="ComboBox">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="Padding" Value="3"/>
+            <Setter Property="SelectedIndex" Value="0"/>
+        </Style>
+    </Window.Resources>
+    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+        <Border BorderBrush="Gray" BorderThickness="2" Width="370" Margin="0 0 0 10" CornerRadius="10" Padding="12">
+            <StackPanel Width="300" HorizontalAlignment="Center" >
+                <!-- Player 1 Info -->
+                <Label Content="Player 1 " Style="{StaticResource UI_Label}" FontSize="20" HorizontalAlignment="Center"/>
+                <Label Content="Username" Style="{StaticResource UI_Label}"/>
+                <TextBox x:Name="Player1Name"  Style="{StaticResource UI_TextBox}" TextChanged="UsernameChanged"/>
+                <Label Content="Choose a Sign :" Style="{StaticResource UI_Label}"/>
+                <ComboBox x:Name="Player1Sign" Style="{StaticResource UI_Combo}">
+                    <ComboBoxItem Content="X"/>
+                    <ComboBoxItem Content="O"/>
+                </ComboBox>
+
+                <!-- Player 1 Info -->
+                <Label Content="Player 2 " Style="{StaticResource UI_Label}" FontSize="20" HorizontalAlignment="Center"/>
+                <ComboBox x:Name="Player2" Style="{StaticResource UI_Combo}">
+                    <ComboBoxItem Content="User"/>
+                    <ComboBoxItem Content="PC"/>
+                </ComboBox>
+                <Label Content="Username" Style="{StaticResource UI_Label}"/>
+                <TextBox x:Name="Player2Name" Style="{StaticResource UI_TextBox}" TextChanged="UsernameChanged"/>
+
+                <!-- Game Area -->
+                <Label Content="Game Area " Style="{StaticResource UI_Label}" FontSize="20" HorizontalAlignment="Center"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" Orientation="Horizontal">
+                        <Label Content="X" Style="{StaticResource UI_Label}"/>
+                        <ComboBox Name="XLength" Style="{StaticResource UI_Combo}" Width="100" Margin="20 0 0 0">
+                            <ComboBoxItem Content="3"/>
+                            <ComboBoxItem Content="4"/>
+                            <ComboBoxItem Content="5"/>
+                            <ComboBoxItem Content="6"/>
+                            <ComboBoxItem Content="7"/>
+                            <ComboBoxItem Content="8"/>
+                        </ComboBox>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Label Content="Y" Style="{StaticResource UI_Label}"/>
+                        <ComboBox x:Name="YLength" Style="{StaticResource UI_Combo}" Width="100" Margin="20 0 0 0">
+                            <ComboBoxItem Content="3"/>
+                            <ComboBoxItem Content="4"/>
+                            <ComboBoxItem Content="5"/>
+                            <ComboBoxItem Content="6"/>
+                            <ComboBoxItem Content="7"/>
+                            <ComboBoxItem Content="8"/>
+                        </ComboBox>
+                    </StackPanel>
+                </Grid>
+
+                <Button x:Name="StartBtn" Content="Start Game!" Height="50" Width="150" Style="{StaticResource UI_Button}" IsEnabled="False" Click="StartBtn_Click"/>
+            </StackPanel>
         </Border>
     </StackPanel>
 </Window>

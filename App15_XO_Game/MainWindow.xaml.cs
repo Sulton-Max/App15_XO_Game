@@ -1,4 +1,5 @@
-﻿using System;
+﻿using App15_XO_Game.Windows;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,17 +21,31 @@ namespace App15_XO_Game
     /// </summary>
     public partial class MainWindow : Window
     {
+        private MainGame _mainGame;
+
         public MainWindow()
         {
             InitializeComponent();
 
-            GameArea gameArea = new GameArea(3,5);
-            GameEngine gameEngine = new GameEngine(gameArea, MainArea);
-            Player player1 = new Player(GameSigns.XSign);
-            Player player2 = new Player(GameSigns.OSign);
+            _mainGame = new MainGame(ShowBack);
+            _mainGame.Show();
+            this.Visibility = Visibility.Hidden;
+        }
 
-            GameLogic game = new GameLogic(gameEngine, player1, player2);
-            game.Run();
+        public void ShowBack(object sender, RoutedEventArgs args)
+        {
+            this.Visibility = Visibility.Visible;
+            _mainGame.Close();
+        }
+
+        private void StartBtn_Click(object sender, RoutedEventArgs e)
+        {
+        }
+
+        private void UsernameChanged(object sender, TextChangedEventArgs e)
+        {
+            if (!string.IsNullOrEmpty(Player1Name.Text) && !string.IsNullOrEmpty(Player2Name.Text))
+                StartBtn.IsEnabled = true;
         }
     }
 }

@@ -9,44 +9,55 @@ namespace App15_XO_Game
 {
     public enum GameSigns
     {
-        XSign = 'x', 
+        XSign = 'x',
         OSign = 'o'
     }
 
+    public enum LineType 
+    {
+        Vertical, 
+        Horizontal, 
+        LeftCrooked,
+        RightCrooked
+    }
 
     public class GameEngine
     {
         private int leftOffset;
         private int topOffset;
-        private GameArea _gArea;
+        private const int MAX_CELL_SIZE = 40;
         private Canvas _mArea;
 
-        public char[,] GameTable { get; private set;  }
+        private Player _player1;
+        private Player _player2;
+        private RoutedEventHandler _conHandler;
 
-        private const int MAX_CELL_SIZE = 40;
+        public RoutedEventHandler HandlerBinder { get; set; }
+        public GameArea GameArea { get; private set; }
 
         public GameEngine(GameArea gArea, Canvas mArea)
         {
-            _gArea = gArea;
+            GameArea = gArea;
             _mArea = mArea;
 
-            leftOffset = ((Convert.ToInt32(_mArea.Width) - _gArea.XLength) / 2);
-            topOffset = ((Convert.ToInt32(_mArea.Height) - _gArea.YLength) / 2);
+            leftOffset = ((Convert.ToInt32(_mArea.Width) - GameArea.XLength) / 2);
+            topOffset = ((Convert.ToInt32(_mArea.Height) - GameArea.YLength) / 2);
         }
 
         public void Render()
         {
+            // Clear the canvas
+            _mArea.Children.Clear();
             // Create Elements
-            CreateLines((_gArea.YCells + 1), false);        // horizontal lines
-            CreateLines((_gArea.XCells + 1), true);         // vertical lines
-            CreateButtons(_gArea.XCells, _gArea.YCells);    // buttons
-           
+            CreateLines((GameArea.YCells + 1), false);        // horizontal lines
+            CreateLines((GameArea.XCells + 1), true);         // vertical lines
+            CreateButtons(GameArea.XCells, GameArea.YCells);    // buttons
         }
 
         private int CalcPos(int offset, int index) => (offset + index * MAX_CELL_SIZE);
 
         private void CreateLines(int number, bool vertical = false)
-        {   
+        {
             // Create Lines
             Line[] lines = new Line[number];
             int offset = (vertical) ? topOffset : leftOffset;
@@ -58,7 +69,7 @@ namespace App15_XO_Game
                 lines[index].Style = (Style)Application.Current.Resources["Cell_Line"];
                 if (vertical)
                 {
-                    lines[index].X1 = _gArea.YLength;
+                    lines[index].X1 = GameArea.YLength;
                     Canvas.SetLeft(lines[index], CalcPos(leftOffset, index));
                     Canvas.SetTop(lines[index], topOffset);
                     RotateTransform rotation = new RotateTransform();
@@ -67,7 +78,7 @@ namespace App15_XO_Game
                 }
                 else
                 {
-                    lines[index].X1 = _gArea.XLength;
+                    lines[index].X1 = GameArea.XLength;
                     Canvas.SetLeft(lines[index], leftOffset);
                     Canvas.SetTop(lines[index], CalcPos(topOffset, index));
                 }
@@ -83,7 +94,7 @@ namespace App15_XO_Game
                 for (int indexX = 0; indexX < xLen; indexX++)
                 {
                     buttons[indexY, indexX] = new Button();
-                    buttons[indexY, indexX].Click += CellButtonClick;
+                    buttons[indexY, indexX].Click += HandlerBinder;
                     buttons[indexY, indexX].Tag = $"{indexX} {indexY}";
                     buttons[indexY, indexX].Width = (MAX_CELL_SIZE - 2);
                     buttons[indexY, indexX].Height = (MAX_CELL_SIZE - 2);
@@ -107,6 +118,127 @@ namespace App15_XO_Game
                 image.Width = 25;
                 button.Content = image;
             }
+        }
+
+        public void ShowScores()
+        {
+            // Creating textblocks
+            TextBlock p1name = new TextBlock();
+            TextBlock p1score = new TextBlock();
+            TextBlock p2name = new TextBlock();
+            TextBlock p2score = new TextBlock();
+            SetTextBlock(p1name);
+            SetTextBlock(p1score);
+            SetTextBlock(p2name);
+            SetTextBlock(p2score);
+            p1name.Text = _player1.Username + " : ";
+            p1score.Text = _player1.Score.ToString();
+            p2name.Text = _player2.Username + " : ";
+            p2score.Text = _player2.Score.ToString();
+
+            Button button = new Button();
+            button.Content = "Continue";
+            button.Width = 100;
+            button.Click += _conHandler;
+            button.Padding = new Thickness(4);
+            button.FontSize = 18;
+            button.Margin = new Thickness(0, 10, 0, 0);
+
+            StackPanel stack1 = new StackPanel();
+            StackPanel stack2 = new StackPanel();
+            stack1.Orientation = Orientation.Horizontal;
+            stack2.Orientation = Orientation.Horizontal;
+            stack1.Children.Add(p1name);
+            stack1.Children.Add(p1score);
+            stack2.Children.Add(p2name);
+            stack2.Children.Add(p2score);
+
+            StackPanel mainStack = new StackPanel();
+            mainStack.Children.Add(stack1);
+            mainStack.Children.Add(stack2);
+            mainStack.Children.Add(button);
+
+            // Fixing the position
+            Canvas.SetLeft(mainStack, ((_mArea.Width - 200) / 2));
+            Canvas.SetTop(mainStack, ((_mArea.Height - 50) / 2));
+
+            // Adding to Canvas
+            _mArea.Children.Clear();
+            _mArea.Children.Add(mainStack);
+        }
+
+        internal void Finish(bool isDraw, LCorr lCorr, Player p1, Player p2, RoutedEventHandler conH)
+        {
+            // Show how the player won if it is now draw
+            if (!isDraw)
+                ShowCrossedSignsLine(lCorr);
+
+            // Saving data temporarily
+            _player1 = p1;
+            _player2 = p2;
+            _conHandler = conH;
+
+            // Button for showing scores
+            Button button = new Button();
+            button.Content = "Next";
+            button.Width = 100;
+            button.Click += ShowScoresBtnClick;
+            button.FontSize = 18;
+
+            // Fixing the position
+            Canvas.SetLeft(button, ((_mArea.Width - 100) / 2));
+            Canvas.SetBottom(button, 20);
+
+            _mArea.Children.Add(button);
+        }
+
+        private void SetTextBlock(TextBlock textBlock)
+        {
+            textBlock.Foreground = new SolidColorBrush(Colors.Gray);
+            textBlock.FontSize = 18;
+            textBlock.FontWeight = FontWeights.Bold;
+            textBlock.HorizontalAlignment = HorizontalAlignment.Center;
+            textBlock.Width = 150;
+        }
+        private void ShowScoresBtnClick(object sender, RoutedEventArgs e)
+        {
+            ShowScores();
+        }
+
+        public void ClearData()
+        {
+            _player1 = null;
+            _player2 = null;
+            _conHandler = null;
+        }
+
+        private void ShowCrossedSignsLine(LCorr lCorr)
+        {
+            //TODO : Check the type of line
+
+
+            // Check the type of the line
+            LineType lineType;
+            if (lCorr.P1.X == lCorr.P2.X)
+                lineType = LineType.Vertical;
+            else if (lCorr.P1.Y == lCorr.P2.Y)
+                lineType = LineType.Horizontal;
+
+            // Create the line
+            Line line = new Line();
+            line.X1 = 120;
+            line.Style = (Style)Application.Current.Resources["Cell_Line"];
+
+            if(LineType.Vertical)
+            {
+
+            }
+
+
+            // Fixing the position
+            Canvas.SetLeft(line, CalcPos((leftOffset + 1), lCorr.P1.X) + (MAX_CELL_SIZE / 2));
+            Canvas.SetTop(line, CalcPos((topOffset + 1), lCorr.P1.Y) + (MAX_CELL_SIZE / 2));
+            _mArea.Children.Add(line);
         }
     }
 }
