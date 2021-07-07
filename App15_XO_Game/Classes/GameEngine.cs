@@ -174,7 +174,7 @@ namespace App15_XO_Game
             _mArea.Children.Add(mainStack);
         }
 
-        internal void Finish(bool isDraw, LCorr lCorr, Player p1, Player p2, RoutedEventHandler conH)
+        public void Finish(bool isDraw, LCorr lCorr, Player p1, Player p2, RoutedEventHandler conH)
         {
             // Disable all buttons
             DisableAllBtns();
@@ -210,6 +210,7 @@ namespace App15_XO_Game
             textBlock.HorizontalAlignment = HorizontalAlignment.Center;
             textBlock.Width = 150;
         }
+
         private void ShowScoresBtnClick(object sender, RoutedEventArgs e)
         {
             ShowScores();
@@ -224,7 +225,6 @@ namespace App15_XO_Game
 
         private void ShowCrossedSignsLine(LCorr lCorr)
         {
-            //TODO : Check the type of line
             // Check the type of the line
             LineType lineType = LineType.Horizontal;
             if (lCorr.P1.X == lCorr.P2.X)

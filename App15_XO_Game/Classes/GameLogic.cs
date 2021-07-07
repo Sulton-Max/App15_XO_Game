@@ -23,7 +23,6 @@ namespace App15_XO_Game
             Y = y;
         }
     }
-
     public struct LCorr
     {
         public PCorr P1 { get; private set; }
@@ -78,6 +77,9 @@ namespace App15_XO_Game
             _gameEngine.Render();
             _status.Text = "Now playing : ";
             _username.Text = _presentPlayer.Username;
+
+            if (_presentPlayer.IsPc)
+                LetPCMove();
         }
 
         public void GameProcess(int xCorr, int yCorr)
@@ -131,11 +133,14 @@ namespace App15_XO_Game
 
             // Give turn to PC if another player is PC
             if (_presentPlayer.IsPc)
-            {
-                PCorr PCMove = PcPlayerLogic.MakeMove(GameTable, _presentPlayer.OwnSign, _previousMove);
-                MakeMove(PCMove);
-                GameProcess(PCMove.X, PCMove.Y);
-            }
+                LetPCMove();
+        }
+
+        private void LetPCMove()
+        {
+            PCorr PCMove = PcPlayerLogic.MakeMove(GameTable, _presentPlayer.OwnSign, _previousMove);
+            MakeMove(PCMove);
+            GameProcess(PCMove.X, PCMove.Y);
         }
 
         private bool CheckIfWon(int xCorr, int yCorr, ref string winner)
@@ -148,8 +153,6 @@ namespace App15_XO_Game
             int yLen = GameTable.GetLength(0);
             int xLen = GameTable.GetLength(1);
             winner = _presentPlayer.Username;
-
-            // TODO : Make all crossing checks
 
             // Checking the all verticals crossings
             if ((yCorr - 1) >= 0)
