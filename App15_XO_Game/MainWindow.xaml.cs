@@ -38,9 +38,9 @@ namespace App15_XO_Game
         {
             bool isPlayer1X = (Player1Sign.SelectedIndex == 0);
             Player player1 = new Player(Player1Name.Text, ((isPlayer1X == true) ? GameSigns.XSign : GameSigns.OSign), false);
-            Player player2 = new Player(Player2Name.Text, ((isPlayer1X == true) ? GameSigns.OSign : GameSigns.XSign), IsAgainstPc.IsChecked??false);
+            Player player2 = new Player(Player2Name.Text, ((isPlayer1X == true) ? GameSigns.OSign : GameSigns.XSign), IsAgainstPc.IsChecked ?? false);
             GameArea gameArea = new GameArea((XLength.SelectedIndex + 3), (YLength.SelectedIndex + 3));
-            
+
             _mainGame = new MainGame(ShowBack, player1, player2, gameArea);
             _mainGame.Show();
             this.Visibility = Visibility.Hidden;
@@ -50,12 +50,24 @@ namespace App15_XO_Game
         {
             if (!string.IsNullOrEmpty(Player1Name.Text) && !string.IsNullOrEmpty(Player2Name.Text))
                 StartBtn.IsEnabled = true;
+            else
+                StartBtn.IsEnabled = false;
         }
 
         private void IsAgainstPc_Checked(object sender, RoutedEventArgs e)
         {
-            Player2Name.Text = "PC";
-            Player2Name.IsEnabled = false;
+            CheckBox checkBox = sender as CheckBox;
+            if (checkBox.IsChecked??false)
+            {
+                Player2Name.Text = "PC";
+                Player2Name.IsEnabled = false;
+            }
+            else
+            {
+                Player2Name.Text = string.Empty;
+                Player2Name.IsEnabled = true;
+                StartBtn.IsEnabled = false;
+            }
         }
     }
 }

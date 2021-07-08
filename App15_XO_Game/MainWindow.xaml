@@ -52,7 +52,7 @@
                 <Label Content="Player 2 " Style="{StaticResource UI_Label}" FontSize="20" HorizontalAlignment="Center"/>
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                     <Label Content="Against PC" Style="{StaticResource UI_Label}"/>
-                    <CheckBox Name="IsAgainstPc" VerticalAlignment="Center" Margin="10 2 0 0" IsChecked="false" Checked="IsAgainstPc_Checked"/>
+                    <CheckBox Name="IsAgainstPc" VerticalAlignment="Center" Margin="10 2 0 0" IsChecked="false" Checked="IsAgainstPc_Checked" Unchecked="IsAgainstPc_Checked"/>
                 </StackPanel>
 
                 <Label Content="Username" Style="{StaticResource UI_Label}"/>

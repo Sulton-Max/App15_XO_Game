@@ -65,7 +65,13 @@ namespace App15_XO_Game
             _gameEngine.HandlerBinder = ButtonClickHandler;
 
             // Setting the present player
-            _presentPlayer = player1;
+            if (_gameEngine.GameArea.XCells > 3 || _gameEngine.GameArea.YCells > 3 && player2.IsPc)
+            {
+                IsNowPlayer1 = false;
+                _presentPlayer = player2;
+            }
+            else
+                _presentPlayer = player1;
         }
 
         public void Run()
@@ -79,7 +85,7 @@ namespace App15_XO_Game
             _username.Text = _presentPlayer.Username;
 
             if (_presentPlayer.IsPc)
-                LetPCMove();
+                LetPCMove(true);
         }
 
         public void GameProcess(int xCorr, int yCorr)
@@ -136,9 +142,9 @@ namespace App15_XO_Game
                 LetPCMove();
         }
 
-        private void LetPCMove()
+        private void LetPCMove(bool isPCShouldMoveFirst = false)
         {
-            PCorr PCMove = PcPlayerLogic.MakeMove(GameTable, _presentPlayer.OwnSign, _previousMove);
+            PCorr PCMove = PcPlayerLogic.MakeMove(GameTable, _presentPlayer.OwnSign, _previousMove, isPCShouldMoveFirst);
             MakeMove(PCMove);
             GameProcess(PCMove.X, PCMove.Y);
         }
@@ -222,7 +228,7 @@ namespace App15_XO_Game
             if ((yCorr + 1 < yLen) && (xCorr - 1 >= 0) && (yCorr + 2 < yLen) && (xCorr - 2 >= 0))
                 if (IsRightSign(xCorr, yCorr) && IsRightSign(xCorr - 1, yCorr + 1) && IsRightSign(xCorr - 2, yCorr + 2))
                 {
-                    _lineCorr = CreateLine(xCorr, yCorr, xCorr - 1, yCorr + 1, xCorr - 2, yCorr + 2);
+                    _lineCorr = CreateLine(xCorr - 2, yCorr + 2, xCorr - 1, yCorr + 1, xCorr, yCorr);
                     return true;
                 }
 
